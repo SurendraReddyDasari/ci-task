@@ -1,4 +1,4 @@
-name: Bulding artifacts
+name: Building artifacts
 
 trigger:
   branches:
@@ -30,6 +30,16 @@ stages:
           command: 'build'
           projects: '**/*.csproj'
           arguments: '--configuration $(buildConfiguration)'
+
+      # Add the SonarQube Prepare Analysis Configuration task
+      - task: SonarQubePrepare@4
+        inputs:
+          SonarQube: <Name of your SonarQube service connection>
+          scannerMode: 'MSBuild'
+          projectKey: 'sonar-ci-project'
+          projectName: 'My Project'
+          extraProperties: |
+            sonar.cs.opencover.reportsPaths=$(Agent.TempDirectory)/**/coverage.opencover.xml
 
 - stage: Test
   displayName: 'Test Stage'
@@ -65,3 +75,9 @@ stages:
         inputs:
           artifactName: 'publish'
           targetPath: '$(Build.ArtifactStagingDirectory)/publish'
+
+      # Add the SonarQube Run Code Analysis task
+      - task: SonarQubeAnalyze@4
+
+      # Add the Publish Quality Gate Result task
+      - task: SonarQubePublish@4
