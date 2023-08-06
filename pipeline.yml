@@ -34,7 +34,7 @@ stages:
       # Add the SonarQube Prepare Analysis Configuration task
       - task: SonarQubePrepare@4
         inputs:
-          SonarQube: <Name of your SonarQube service connection>
+          SonarQube: 'sonarqube'
           scannerMode: 'MSBuild'
           projectKey: 'sonar-ci-project'
           projectName: 'My Project'
