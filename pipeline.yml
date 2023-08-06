@@ -1,0 +1,67 @@
+name: Bulding artifacts
+
+trigger:
+  branches:
+    include:
+      - main
+
+stages:
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+  - job: CI
+    displayName: CI
+
+    steps:
+      - task: UseDotNet@2
+        displayName: 'Install .NET SDK'
+        inputs:
+          version: '7.0.x'
+
+      - task: DotNetCoreCLI@2
+        displayName: 'Restore NuGet packages'
+        inputs:
+          command: 'restore'
+          projects: '**/*.csproj'
+
+      - task: DotNetCoreCLI@2
+        displayName: 'Build the application'
+        inputs:
+          command: 'build'
+          projects: '**/*.csproj'
+          arguments: '--configuration $(buildConfiguration)'
+
+- stage: Test
+  displayName: 'Test Stage'
+  jobs:
+  - job: CI
+    displayName: CI
+
+    steps:
+      - task: DotNetCoreCLI@2
+        displayName: 'Run unit tests'
+        inputs:
+          command: 'test'
+          projects: '**/*Tests.csproj'
+          arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+
+- stage: Publish
+  displayName: 'Publish Stage'
+  jobs:
+  - job: CI
+    displayName: CI
+
+    steps:
+      - task: DotNetCoreCLI@2
+        displayName: 'Publish the application'
+        inputs:
+          command: 'publish'
+          projects: '**/*.csproj'
+          publishWebProjects: true
+          arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/publish'
+
+      - task: PublishPipelineArtifact@1
+        displayName: 'Publish artifacts'
+        inputs:
+          artifactName: 'publish'
+          targetPath: '$(Build.ArtifactStagingDirectory)/publish'
